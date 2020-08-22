@@ -16,16 +16,15 @@ import org.elasticsearch.search.aggregations.metrics.avg.ParsedAvg;
 import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.data.util.Pair;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -96,7 +95,7 @@ public class ApiController {
       return Collections.singletonMap("counts_by_sector", countsPerSector);
    }
 
-   @GetMapping("/avgPEAndEarningsPerShareBySector")
+   @GetMapping("/avgPEAndEarningsPerShareBySectorWithOrder")
    public Map<String, Object> getAvgPEAndEarningsPerShareBySector() throws IOException {
 
       // building the search (query  + aggregations)
@@ -126,11 +125,11 @@ public class ApiController {
       // get sum aggregation:
       Aggregations aggregation = response.getAggregations();
 
-      Map<Object, Object> avgResults = ((ParsedStringTerms) aggregation.get("group_by_sector")).getBuckets().stream()
-            .collect(Collectors.toMap(Terms.Bucket::getKey, sectorBucket -> Map
-                  .of("avg_pe", ((ParsedAvg) sectorBucket.getAggregations().get("avg_pe")).getValue(),
-                        "avg_earnings_per_share",
-                        ((ParsedAvg) sectorBucket.getAggregations().get("avg_earnings_per_share")).getValue())));
+      List<Pair<Object, Map<String, Double>>> avgResults = ((ParsedStringTerms) aggregation.get("group_by_sector")).getBuckets().stream()
+            .map(bucket -> Pair.of(bucket.getKey(), Map
+                    .of("avg_pe", ((ParsedAvg) bucket.getAggregations().get("avg_pe")).getValue(),
+                            "avg_earnings_per_share",
+                            ((ParsedAvg) bucket.getAggregations().get("avg_earnings_per_share")).getValue()))).collect(Collectors.toList());
 
       return Collections.singletonMap("averages_by_sector", avgResults);
    }
