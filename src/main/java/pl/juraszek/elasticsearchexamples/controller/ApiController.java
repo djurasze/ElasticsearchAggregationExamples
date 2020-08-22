@@ -15,13 +15,17 @@ import org.elasticsearch.search.aggregations.metrics.avg.AvgAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.avg.ParsedAvg;
 import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.pipeline.bucketsort.BucketSortPipelineAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.util.Pair;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +100,7 @@ public class ApiController {
    }
 
    @GetMapping("/avgPEAndEarningsPerShareBySectorWithOrder")
-   public Map<String, Object> getAvgPEAndEarningsPerShareBySector() throws IOException {
+   public Map<String, Object> getAvgPEAndEarningsPerShareBySectorWithOrder() throws IOException {
 
       // building the search (query  + aggregations)
       SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -130,6 +134,53 @@ public class ApiController {
                     .of("avg_pe", ((ParsedAvg) bucket.getAggregations().get("avg_pe")).getValue(),
                             "avg_earnings_per_share",
                             ((ParsedAvg) bucket.getAggregations().get("avg_earnings_per_share")).getValue()))).collect(Collectors.toList());
+
+      return Collections.singletonMap("averages_by_sector", avgResults);
+   }
+
+   @GetMapping("/avgPEAndEarningsPerShareBySectorWithSort")
+   public Map<String, Object> getAvgPEAndEarningsPerShareBySectorWithSort() throws IOException {
+
+      // building the search (query  + aggregations)
+      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+      // setting the query which is used for the aggregation
+      searchSourceBuilder.query(QueryBuilders.matchAllQuery()).size(0);
+
+      // create sort pipeline aggregation
+      List<FieldSortBuilder> sorts = new ArrayList<>();
+      String sortField = "avg_pe";
+      SortOrder sortOrder = SortOrder.DESC;
+      FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField);
+      fieldSortBuilder.order(sortOrder);
+      sorts.add(fieldSortBuilder);
+      BucketSortPipelineAggregationBuilder sortAggregation = new BucketSortPipelineAggregationBuilder("bucket_sort_by_pe", sorts);
+
+
+      // build the aggregation
+      TermsAggregationBuilder groupBySector = AggregationBuilders.terms("group_by_sector").field("Sector.keyword")
+              .size(15);
+      AvgAggregationBuilder averagePRRatio = AggregationBuilders.avg("avg_pe").field("Price/Earnings");
+      AvgAggregationBuilder averageEarningsPerShare = AggregationBuilders.avg("avg_earnings_per_share")
+              .field("Earnings/Share");
+      searchSourceBuilder
+              .aggregation(groupBySector.subAggregation(averagePRRatio).subAggregation(averageEarningsPerShare).subAggregation(sortAggregation));
+
+      // create the request
+      SearchRequest searchRequest = new SearchRequest();
+      searchRequest.source(searchSourceBuilder);
+
+      // get aggregation:
+      SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+
+      // get sum aggregation:
+      Aggregations aggregation = response.getAggregations();
+
+      List<Pair<Object, Map<String, Double>>> avgResults = ((ParsedStringTerms) aggregation.get("group_by_sector")).getBuckets().stream()
+              .map(bucket -> Pair.of(bucket.getKey(), Map
+                      .of("avg_pe", ((ParsedAvg) bucket.getAggregations().get("avg_pe")).getValue(),
+                              "avg_earnings_per_share",
+                              ((ParsedAvg) bucket.getAggregations().get("avg_earnings_per_share")).getValue()))).collect(Collectors.toList());
 
       return Collections.singletonMap("averages_by_sector", avgResults);
    }
