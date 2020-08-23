@@ -1,0 +1,422 @@
+{
+	"info": {
+		"_postman_id": "e2b4c131-6309-4a56-b3e2-df9404891056",
+		"name": "elastic",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "aggregations",
+			"item": [
+				{
+					"name": "total market capacity dsl",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": {\r\n        \"match_all\": {}\r\n    },\r\n    \"size\":0,\r\n    \"aggs\" : {\r\n        \"total_market_capacity\" : { \"sum\" : { \"field\" : \"Market Cap\" } }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "total market capacity spring",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/aggregations/totalMarketCapacity",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"aggregations",
+								"totalMarketCapacity"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "companies per sector dsl",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": {\r\n        \"match_all\": {}\r\n    },\r\n    \"size\":0,\r\n    \"aggs\": {\r\n    \"group_by_sector\": {\r\n      \"terms\": {\r\n        \"field\": \"Sector.keyword\",\r\n        \"size\": 1,\r\n        \"shard_size\": 1,\r\n        \"show_term_doc_count_error\": true\r\n      }\r\n    }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "companies per sector spring",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/aggregations/companiesCountBySector",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"aggregations",
+								"companiesCountBySector"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector with sort dsl",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": {\r\n        \"match_all\": {}\r\n    },\r\n    \"size\":0,\r\n    \"aggs\": {\r\n    \"group_by_sector\": {\r\n      \"terms\": {\r\n        \"field\": \"Sector.keyword\",\r\n        \"size\": 15\r\n      },\r\n         \"aggs\" : {\r\n        \"avg_pe\" : { \"avg\" : { \"field\" : \"Price/Earnings\" } },\r\n        \"avg_earnings_per_share\" : { \"avg\" : { \"field\" : \"Earnings/Share\" } },\r\n        \"bucket_sort_by_pe\": {\r\n                    \"bucket_sort\": {\r\n                        \"sort\": [\r\n                          {\"avg_pe\": {\"order\": \"desc\"}}\r\n                        ],\r\n                        \"size\": 15\r\n                    }\r\n                }\r\n\r\n    \t}\r\n    }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector with order dsl",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"query\": {\r\n        \"match_all\": {}\r\n    },\r\n    \"size\":0,\r\n    \"aggs\": {\r\n    \"group_by_sector\": {\r\n      \"terms\": {\r\n        \"field\": \"Sector.keyword\",\r\n        \"size\": 15,\r\n                        \"order\": [{\r\n                        \"avg_pe\": \"desc\"\r\n                    }, {\r\n                        \"_key\": \"asc\"\r\n                    }\r\n                ]\r\n      },\r\n         \"aggs\" : {\r\n        \"avg_pe\" : { \"avg\" : { \"field\" : \"Price/Earnings\" } },\r\n        \"avg_earnings_per_share\" : { \"avg\" : { \"field\" : \"Earnings/Share\" } }\r\n    \t}\r\n    }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector with sort  spring",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/aggregations/avgPEAndEarningsPerShareBySectorWithSort",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"aggregations",
+								"avgPEAndEarningsPerShareBySectorWithSort"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector with sort generated by spring",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"size\": 0,\r\n    \"query\": {\r\n        \"match_all\": {\r\n            \"boost\": 1.0\r\n        }\r\n    },\r\n    \"aggregations\": {\r\n        \"group_by_sector\": {\r\n            \"terms\": {\r\n                \"field\": \"Sector.keyword\",\r\n                \"size\": 15,\r\n                \"min_doc_count\": 1,\r\n                \"shard_min_doc_count\": 0,\r\n                \"show_term_doc_count_error\": false,\r\n                \"order\": [\r\n                    {\r\n                        \"_count\": \"desc\"\r\n                    },\r\n                    {\r\n                        \"_key\": \"asc\"\r\n                    }\r\n                ]\r\n            },\r\n            \"aggregations\": {\r\n                \"avg_pe\": {\r\n                    \"avg\": {\r\n                        \"field\": \"Price/Earnings\"\r\n                    }\r\n                },\r\n                \"avg_earnings_per_share\": {\r\n                    \"avg\": {\r\n                        \"field\": \"Earnings/Share\"\r\n                    }\r\n                },\r\n                \"bucket_sort_by_pe\": {\r\n                    \"bucket_sort\": {\r\n                        \"sort\": [\r\n                            {\r\n                                \"avg_pe\": {\r\n                                    \"order\": \"desc\"\r\n                                }\r\n                            }\r\n                        ],\r\n                        \"from\": 0,\r\n                        \"gap_policy\": \"SKIP\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector  with order spring",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/aggregations/avgPEAndEarningsPerShareBySectorWithOrder",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"aggregations",
+								"avgPEAndEarningsPerShareBySectorWithOrder"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "avg p/e and earnings/share in each sector with order generated by spring",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"size\": 0,\r\n    \"query\": {\r\n        \"match_all\": {\r\n            \"boost\": 1.0\r\n        }\r\n    },\r\n    \"aggregations\": {\r\n        \"group_by_sector\": {\r\n            \"terms\": {\r\n                \"field\": \"Sector.keyword\",\r\n                \"size\": 15,\r\n                \"min_doc_count\": 1,\r\n                \"shard_min_doc_count\": 0,\r\n                \"show_term_doc_count_error\": false,\r\n                \"order\": [\r\n                    {\r\n                        \"avg_pe\": \"desc\"\r\n                    },\r\n                    {\r\n                        \"_key\": \"asc\"\r\n                    }\r\n                ]\r\n            },\r\n            \"aggregations\": {\r\n                \"avg_pe\": {\r\n                    \"avg\": {\r\n                        \"field\": \"Price/Earnings\"\r\n                    }\r\n                },\r\n                \"avg_earnings_per_share\": {\r\n                    \"avg\": {\r\n                        \"field\": \"Earnings/Share\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ratio_percentage_of_EBITDA_when_PE_greater_than_20_by_sector dsl",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"size\": 0,\r\n    \"query\": {\r\n        \"match_all\": {\r\n            \"boost\": 1.0\r\n        }\r\n    },\r\n    \"aggregations\": {\r\n        \"group_by_sector\": {\r\n            \"terms\": {\r\n                \"field\": \"Sector.keyword\",\r\n                \"size\": 15,\r\n                \"min_doc_count\": 1\r\n            },\r\n            \"aggregations\": {\r\n                \"total_EBITDA\": {\r\n                    \"sum\": {\r\n                        \"field\": \"EBITDA\"\r\n                    }\r\n                },\r\n                \"PEGreater\": {\r\n                    \"filter\": {\r\n                        \"range\": {\r\n                            \"Price/Earnings\": {\r\n                                \"from\": 20,\r\n                                \"to\": null,\r\n                                \"include_lower\": false,\r\n                                \"include_upper\": true,\r\n                                \"boost\": 1.0\r\n                            }\r\n                        }\r\n                    },\r\n                    \"aggregations\": {\r\n                        \"total_EBITDA\": {\r\n                            \"sum\": {\r\n                                \"field\": \"EBITDA\"\r\n                            }\r\n                        }\r\n                    }\r\n                },\r\n                \"EBITDA_percentage\": {\r\n                    \"bucket_script\": {\r\n                        \"buckets_path\": {\r\n                            \"filteredEBITDA\": \"PEGreater>total_EBITDA\",\r\n                            \"totalEBITDA\": \"total_EBITDA\"\r\n                        },\r\n                        \"script\": {\r\n                            \"source\": \"(params.filteredEBITDA / params.totalEBITDA) * 100\",\r\n                            \"lang\": \"painless\"\r\n                        },\r\n                        \"gap_policy\": \"skip\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ratio_percentage_of_EBITDA_when_PE_greater_than_20_by_sector spring",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/aggregations/ratioPercentageOfMarketCapWhenPEGreaterThan20BySector",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"aggregations",
+								"ratioPercentageOfMarketCapWhenPEGreaterThan20BySector"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ratio_percentage_of_EBITDA_when_PE_greater_than_20_by_sector query generated by spring",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"size\": 0,\r\n    \"query\": {\r\n        \"match_all\": {\r\n            \"boost\": 1.0\r\n        }\r\n    },\r\n    \"aggregations\": {\r\n        \"group_by_sector\": {\r\n            \"terms\": {\r\n                \"field\": \"Sector.keyword\",\r\n                \"size\": 15,\r\n                \"min_doc_count\": 1,\r\n                \"shard_min_doc_count\": 0,\r\n                \"show_term_doc_count_error\": false,\r\n                \"order\": [\r\n                    {\r\n                        \"_count\": \"desc\"\r\n                    },\r\n                    {\r\n                        \"_key\": \"asc\"\r\n                    }\r\n                ]\r\n            },\r\n            \"aggregations\": {\r\n                \"total_EBITDA\": {\r\n                    \"sum\": {\r\n                        \"field\": \"EBITDA\"\r\n                    }\r\n                },\r\n                \"PEGreater\": {\r\n                    \"filter\": {\r\n                        \"range\": {\r\n                            \"Price/Earnings\": {\r\n                                \"from\": 20,\r\n                                \"to\": null,\r\n                                \"include_lower\": false,\r\n                                \"include_upper\": true,\r\n                                \"boost\": 1.0\r\n                            }\r\n                        }\r\n                    },\r\n                    \"aggregations\": {\r\n                        \"total_EBITDA\": {\r\n                            \"sum\": {\r\n                                \"field\": \"EBITDA\"\r\n                            }\r\n                        }\r\n                    }\r\n                },\r\n                \"EBITDA_percentage\": {\r\n                    \"bucket_script\": {\r\n                        \"buckets_path\": {\r\n                            \"filteredEBITDA\": \"PEGreater>total_EBITDA\",\r\n                            \"totalEBITDA\": \"total_EBITDA\"\r\n                        },\r\n                        \"script\": {\r\n                            \"source\": \"(params.filteredEBITDA / params.totalEBITDA) * 100\",\r\n                            \"lang\": \"painless\"\r\n                        },\r\n                        \"gap_policy\": \"skip\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/companies/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"companies",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "index info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:9200/companies",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"companies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete index",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:9200/companies",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"companies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create index with shards",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"settings\" : {\r\n        \"index\" : {\r\n            \"number_of_shards\" : 3, \r\n            \"number_of_replicas\" : 1 \r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9200/companies",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"companies"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
